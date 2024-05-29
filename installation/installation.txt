@@ -4,7 +4,7 @@ git clone https://github.com/claessenskris/Graphonomy
 cd Graphonomy/data
 mkdir pretrained_model 
 cd pretrained_model 
-wget https://drive.google.com/file/d/1E_V_gVDWfAJFPfe-LLu2RQaYQMdhjv9h
+wget https://drive.usercontent.google.com/download?id=1O9YD4kHgs3w2DUcWxtHiEFyWjCBeS_Vc&export=download&authuser=0&confirm=t&uuid=72987106-0395-4678-8d0e-88341ccac906&at=APZUnTVTvoOePjUTfjqniGBrhJMa%3A1717018231564
 
 pip install opencv-python
 pip install networkx

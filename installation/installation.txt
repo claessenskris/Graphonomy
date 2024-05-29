@@ -1,0 +1,11 @@
+pip install torch==1.4.0 torchvision==0.5.0 -f https://download.pytorch.org/whl/torch_stable.html
+git clone https://github.com/claessenskris/Graphonomy
+
+
+cd data/datasets
+mkdir pretrained_model 
+wget https://drive.google.com/file/d/1E_V_gVDWfAJFPfe-LLu2RQaYQMdhjv9h/view
+
+pip install opencv-python
+pip install networkx
+pip install scipy

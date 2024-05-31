@@ -164,7 +164,11 @@ def inference(net, img_path='', output_path='./', output_name='f', use_gpu=True)
     vis_res = decode_labels(results)
 
     parsing_im = Image.fromarray(vis_res[0])
+
+    if not os.path.exists(output_path + '_vis'): os.makedirs(output_path + '_vis') 
     parsing_im.save(output_path + '_vis' + '/{}_vis.png'.format(output_name[:-4]))
+
+    if not os.path.exists(output_path): os.makedirs(output_path) 
     cv2.imwrite(output_path + '/{}.png'.format(output_name), results[0, :, :])
 
     end_time = timeit.default_timer()

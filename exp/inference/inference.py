@@ -169,7 +169,7 @@ def inference(net, img_path='', output_path='./', output_name='f', use_gpu=True)
     parsing_im.save(output_path + '_vis' + '/{}_vis.png'.format(output_name[:-4]))
 
     if not os.path.exists(output_path): os.makedirs(output_path) 
-    cv2.imwrite(output_path + '/{}.png'.format(output_name), results[0, :, :])
+    cv2.imwrite(output_path + '/{}.png'.format(output_name[:-4]), results[0, :, :])
 
     end_time = timeit.default_timer()
     print('time used for the multi-scale image inference' + ' is :' + str(end_time - start_time))

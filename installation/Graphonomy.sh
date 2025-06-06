@@ -7,4 +7,4 @@ source _pyt14/bin/activate
 
 cd _pyt14/Graphonomy
 
-python3 FileAppRun.py --run_id Graphonomy --bucket image_generator_request --config _config1 --token confident-coder-285618-1a0704c69644.json 
+python3 FileSharing_Run.py --run_id Graphonomy --bucket image_generator_request --config _config4 --token confident-coder-285618-1a0704c69644.json 

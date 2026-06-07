@@ -12,6 +12,7 @@ import torch
 from torch.autograd import Variable
 from torchvision import transforms
 import cv2
+import os
 
 
 # Custom includes
@@ -168,11 +169,18 @@ def inference(net, img_path='', output_path='./', output_name='f', use_gpu=True)
     if not os.path.exists(output_path + '_vis'): os.makedirs(output_path + '_vis') 
     parsing_im.save(output_path + '_vis' + '/{}_vis.png'.format(output_name[:-4]))
 
-    if not os.path.exists(output_path): os.makedirs(output_path) 
-    cv2.imwrite(output_path + '/{}.png'.format(output_name[:-4]), results[0, :, :])
+    if not os.path.exists(output_path): os.makedirs(output_path)
+
+    # simulation atomic write
+
+    tmp = output_path + '/temp_{}.png'.format(output_name[:-4])
+    dst = output_path + '/{}.png'.format(output_name[:-4])
+
+    cv2.imwrite(tmp, results[0, :, :])
+    os.replace(tmp, dst)
 
     end_time = timeit.default_timer()
-    print('time used for the multi-scale image inference' + ' is :' + str(end_time - start_time))
+   # print('time used for the multi-scale image inference' + ' is :' + str(end_time - start_time))
 
 if __name__ == '__main__':
     '''argparse begin'''

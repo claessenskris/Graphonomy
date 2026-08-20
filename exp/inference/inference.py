@@ -9,7 +9,6 @@ from collections import OrderedDict
 sys.path.append('./')
 # PyTorch includes
 import torch
-from torch.autograd import Variable
 from torchvision import transforms
 import cv2
 import os
@@ -23,9 +22,9 @@ from dataloaders import custom_transforms as tr
 import argparse
 import torch.nn.functional as F
 
-label_colours = [(0,0,0)
+label_colours = np.array([(0,0,0)
                 , (128,0,0), (255,0,0), (0,85,0), (170,0,51), (255,85,0), (0,0,85), (0,119,221), (85,85,0), (0,85,85), (85,51,0), (52,86,128), (0,128,0)
-                , (0,0,255), (51,170,221), (0,255,255), (85,255,170), (170,255,85), (255,255,0), (255,170,0)]
+                , (0,0,255), (51,170,221), (0,255,255), (85,255,170), (170,255,85), (255,255,0), (255,170,0)], dtype=np.uint8)
 
 
 def flip(x, dim):
@@ -67,16 +66,9 @@ def decode_labels(mask, num_images=1, num_classes=20):
     n, h, w = mask.shape
     assert (n >= num_images), 'Batch size %d should be greater or equal than number of images to save %d.' % (
     n, num_images)
-    outputs = np.zeros((num_images, h, w, 3), dtype=np.uint8)
-    for i in range(num_images):
-        img = Image.new('RGB', (len(mask[i, 0]), len(mask[i])))
-        pixels = img.load()
-        for j_, j in enumerate(mask[i, :, :]):
-            for k_, k in enumerate(j):
-                if k < num_classes:
-                    pixels[k_, j_] = label_colours[k]
-        outputs[i] = np.array(img)
-    return outputs
+    # vectorized palette lookup (was a per-pixel Python/PIL loop, O(h*w) Python calls)
+    clipped = np.clip(mask[:num_images], 0, num_classes - 1)
+    return label_colours[clipped]
 
 def read_img(img_path):
     _img = Image.open(img_path).convert('RGB')  # return is RGB pic
@@ -88,7 +80,7 @@ def img_transform(img, transform=None):
     sample = transform(sample)
     return sample
 
-def inference(net, img_path='', output_path='./', output_name='f', use_gpu=True):
+def inference(net, img_path='', output_path='./', output_name='f', device='cuda'):
     '''
 
     :param net:
@@ -98,14 +90,14 @@ def inference(net, img_path='', output_path='./', output_name='f', use_gpu=True)
     '''
     # adj
     adj2_ = torch.from_numpy(graph.cihp2pascal_nlp_adj).float()
-    adj2_test = adj2_.unsqueeze(0).unsqueeze(0).expand(1, 1, 7, 20).cuda().transpose(2, 3)
+    adj2_test = adj2_.unsqueeze(0).unsqueeze(0).expand(1, 1, 7, 20).to(device).transpose(2, 3)
 
-    adj1_ = Variable(torch.from_numpy(graph.preprocess_adj(graph.pascal_graph)).float())
-    adj3_test = adj1_.unsqueeze(0).unsqueeze(0).expand(1, 1, 7, 7).cuda()
+    adj1_ = torch.from_numpy(graph.preprocess_adj(graph.pascal_graph)).float()
+    adj3_test = adj1_.unsqueeze(0).unsqueeze(0).expand(1, 1, 7, 7).to(device)
 
     cihp_adj = graph.preprocess_adj(graph.cihp_graph)
-    adj3_ = Variable(torch.from_numpy(cihp_adj).float())
-    adj1_test = adj3_.unsqueeze(0).unsqueeze(0).expand(1, 1, 20, 20).cuda()
+    adj3_ = torch.from_numpy(cihp_adj).float()
+    adj1_test = adj3_.unsqueeze(0).unsqueeze(0).expand(1, 1, 20, 20).to(device)
 
     # multi-scale
     scale_list = [1, 0.5, 0.75, 1.25, 1.5, 1.75]
@@ -144,18 +136,14 @@ def inference(net, img_path='', output_path='./', output_name='f', use_gpu=True)
         # assert inputs.size() == inputs_f.size()
 
         # Forward pass of the mini-batch
-        inputs = Variable(inputs, requires_grad=False)
-
         with torch.no_grad():
-            if use_gpu >= 0:
-                inputs = inputs.cuda()
-            # outputs = net.forward(inputs)
-            outputs = net.forward(inputs, adj1_test.cuda(), adj3_test.cuda(), adj2_test.cuda())
+            inputs = inputs.to(device)
+            outputs = net.forward(inputs, adj1_test, adj3_test, adj2_test)
             outputs = (outputs[0] + flip(flip_cihp(outputs[1]), dim=-1)) / 2
             outputs = outputs.unsqueeze(0)
 
             if iii > 0:
-                outputs = F.upsample(outputs, size=(h, w), mode='bilinear', align_corners=True)
+                outputs = F.interpolate(outputs, size=(h, w), mode='bilinear', align_corners=True)
                 outputs_final = outputs_final + outputs
             else:
                 outputs_final = outputs.clone()
@@ -176,7 +164,7 @@ def inference(net, img_path='', output_path='./', output_name='f', use_gpu=True)
     tmp = output_path + '/temp_{}.png'.format(output_name[:-4])
     dst = output_path + '/{}.png'.format(output_name[:-4])
 
-    cv2.imwrite(tmp, results[0, :, :])
+    cv2.imwrite(tmp, results[0, :, :].astype(np.uint8))
     os.replace(tmp, dst)
 
     end_time = timeit.default_timer()
@@ -196,20 +184,19 @@ if __name__ == '__main__':
     net = deeplab_xception_transfer.deeplab_xception_transfer_projection_savemem(n_classes=20,
                                                                                  hidden_layers=128,
                                                                                  source_classes=7, )
+
+    device = 'cuda' if (opts.use_gpu > 0 and torch.cuda.is_available()) else 'cpu'
+    if opts.use_gpu > 0 and device == 'cpu':
+        print('--use_gpu was set but CUDA is not available; falling back to CPU')
+
     if not opts.loadmodel == '':
-        x = torch.load(opts.loadmodel)
+        x = torch.load(opts.loadmodel, map_location=device)
         net.load_source_model(x)
         print('load model:', opts.loadmodel)
     else:
         print('no model load !!!!!!!!')
         raise RuntimeError('No model!!!!')
 
-    if opts.use_gpu >0 :
-        net.cuda()
-        use_gpu = True
-    else:
-        use_gpu = False
-        raise RuntimeError('must use the gpu!!!!')
+    net.to(device)
 
-    inference(net=net, img_path=opts.img_path,output_path=opts.output_path , output_name=opts.output_name, use_gpu=use_gpu)
-
+    inference(net=net, img_path=opts.img_path, output_path=opts.output_path, output_name=opts.output_name, device=device)

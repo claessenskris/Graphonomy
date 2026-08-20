@@ -78,6 +78,7 @@ class deeplab_xception_transfer_basemodel(deeplab_xception.DeepLabv3_plus):
             # print 'copying %s' %name
 
         missing = set(own_state.keys()) - set(new_state_dict.keys())
+        missing = {m for m in missing if not m.endswith('num_batches_tracked')}
         if len(missing) > 0:
             print('missing keys in state_dict: "{}"'.format(missing))
 
@@ -113,7 +114,7 @@ class deeplab_xception_transfer_basemodel(deeplab_xception.DeepLabv3_plus):
         x3 = self.aspp3(x)
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
-        x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
+        x5 = F.interpolate(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
 
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
@@ -121,7 +122,7 @@ class deeplab_xception_transfer_basemodel(deeplab_xception.DeepLabv3_plus):
         x = self.concat_projection_bn1(x)
         x = self.relu(x)
         # print(x.size())
-        x = F.upsample(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
 
         low_level_features = self.feature_projection_conv1(low_level_features)
         low_level_features = self.feature_projection_bn1(low_level_features)
@@ -156,7 +157,7 @@ class deeplab_xception_transfer_basemodel(deeplab_xception.DeepLabv3_plus):
 
         ###
         x = self.semantic(x)
-        x = F.upsample(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
 
@@ -213,6 +214,7 @@ class deeplab_xception_transfer_basemodel_savememory(deeplab_xception.DeepLabv3_
             # print 'copying %s' %name
 
         missing = set(own_state.keys()) - set(new_state_dict.keys())
+        missing = {m for m in missing if not m.endswith('num_batches_tracked')}
         if len(missing) > 0:
             print('missing keys in state_dict: "{}"'.format(missing))
 
@@ -248,7 +250,7 @@ class deeplab_xception_transfer_basemodel_savememory(deeplab_xception.DeepLabv3_
         x3 = self.aspp3(x)
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
-        x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
+        x5 = F.interpolate(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
 
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
@@ -256,7 +258,7 @@ class deeplab_xception_transfer_basemodel_savememory(deeplab_xception.DeepLabv3_
         x = self.concat_projection_bn1(x)
         x = self.relu(x)
         # print(x.size())
-        x = F.upsample(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
 
         low_level_features = self.feature_projection_conv1(low_level_features)
         low_level_features = self.feature_projection_bn1(low_level_features)
@@ -291,7 +293,7 @@ class deeplab_xception_transfer_basemodel_savememory(deeplab_xception.DeepLabv3_
 
         ###
         x = self.semantic(x)
-        x = F.upsample(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
 
@@ -360,6 +362,7 @@ class deeplab_xception_transfer_basemodel_synBN(deeplab_xception_synBN.DeepLabv3
             # print 'copying %s' %name
 
         missing = set(own_state.keys()) - set(new_state_dict.keys())
+        missing = {m for m in missing if not m.endswith('num_batches_tracked')}
         if len(missing) > 0:
             print('missing keys in state_dict: "{}"'.format(missing))
 
@@ -395,7 +398,7 @@ class deeplab_xception_transfer_basemodel_synBN(deeplab_xception_synBN.DeepLabv3
         x3 = self.aspp3(x)
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
-        x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
+        x5 = F.interpolate(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
 
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
@@ -403,7 +406,7 @@ class deeplab_xception_transfer_basemodel_synBN(deeplab_xception_synBN.DeepLabv3
         x = self.concat_projection_bn1(x)
         x = self.relu(x)
         # print(x.size())
-        x = F.upsample(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
 
         low_level_features = self.feature_projection_conv1(low_level_features)
         low_level_features = self.feature_projection_bn1(low_level_features)
@@ -438,7 +441,7 @@ class deeplab_xception_transfer_basemodel_synBN(deeplab_xception_synBN.DeepLabv3
 
         ###
         x = self.semantic(x)
-        x = F.upsample(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
 
@@ -508,6 +511,7 @@ class deeplab_xception_transfer_basemodel_synBN_savememory(deeplab_xception_synB
             # print 'copying %s' %name
 
         missing = set(own_state.keys()) - set(new_state_dict.keys())
+        missing = {m for m in missing if not m.endswith('num_batches_tracked')}
         if len(missing) > 0:
             print('missing keys in state_dict: "{}"'.format(missing))
 
@@ -543,7 +547,7 @@ class deeplab_xception_transfer_basemodel_synBN_savememory(deeplab_xception_synB
         x3 = self.aspp3(x)
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
-        x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
+        x5 = F.interpolate(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
 
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
@@ -551,7 +555,7 @@ class deeplab_xception_transfer_basemodel_synBN_savememory(deeplab_xception_synB
         x = self.concat_projection_bn1(x)
         x = self.relu(x)
         # print(x.size())
-        x = F.upsample(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
 
         low_level_features = self.feature_projection_conv1(low_level_features)
         low_level_features = self.feature_projection_bn1(low_level_features)
@@ -586,7 +590,7 @@ class deeplab_xception_transfer_basemodel_synBN_savememory(deeplab_xception_synB
 
         ###
         x = self.semantic(x)
-        x = F.upsample(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
 
@@ -617,7 +621,7 @@ class deeplab_xception_transfer_projection(deeplab_xception_transfer_basemodel):
         x3 = self.aspp3(x)
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
-        x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
+        x5 = F.interpolate(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
 
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
@@ -625,7 +629,7 @@ class deeplab_xception_transfer_projection(deeplab_xception_transfer_basemodel):
         x = self.concat_projection_bn1(x)
         x = self.relu(x)
         # print(x.size())
-        x = F.upsample(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
 
         low_level_features = self.feature_projection_conv1(low_level_features)
         low_level_features = self.feature_projection_bn1(low_level_features)
@@ -682,7 +686,7 @@ class deeplab_xception_transfer_projection(deeplab_xception_transfer_basemodel):
 
         ###
         x = self.semantic(x)
-        x = F.upsample(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
 
@@ -726,6 +730,7 @@ class deeplab_xception_transfer_projection(deeplab_xception_transfer_basemodel):
             # print 'copying %s' %name
 
         missing = set(own_state.keys()) - set(new_state_dict.keys())
+        missing = {m for m in missing if not m.endswith('num_batches_tracked')}
         if len(missing) > 0:
             print('missing keys in state_dict: "{}"'.format(missing))
 
@@ -752,7 +757,7 @@ class deeplab_xception_transfer_projection_savemem(deeplab_xception_transfer_bas
         x3 = self.aspp3(x)
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
-        x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
+        x5 = F.interpolate(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
 
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
@@ -760,7 +765,7 @@ class deeplab_xception_transfer_projection_savemem(deeplab_xception_transfer_bas
         x = self.concat_projection_bn1(x)
         x = self.relu(x)
         # print(x.size())
-        x = F.upsample(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
 
         low_level_features = self.feature_projection_conv1(low_level_features)
         low_level_features = self.feature_projection_bn1(low_level_features)
@@ -814,7 +819,7 @@ class deeplab_xception_transfer_projection_savemem(deeplab_xception_transfer_bas
 
         ###
         x = self.semantic(x)
-        x = F.upsample(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
 
@@ -858,6 +863,7 @@ class deeplab_xception_transfer_projection_savemem(deeplab_xception_transfer_bas
             # print 'copying %s' %name
 
         missing = set(own_state.keys()) - set(new_state_dict.keys())
+        missing = {m for m in missing if not m.endswith('num_batches_tracked')}
         if len(missing) > 0:
             print('missing keys in state_dict: "{}"'.format(missing))
 
@@ -885,7 +891,7 @@ class deeplab_xception_transfer_projection_synBN_savemem(deeplab_xception_transf
         x3 = self.aspp3(x)
         x4 = self.aspp4(x)
         x5 = self.global_avg_pool(x)
-        x5 = F.upsample(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
+        x5 = F.interpolate(x5, size=x4.size()[2:], mode='bilinear', align_corners=True)
 
         x = torch.cat((x1, x2, x3, x4, x5), dim=1)
 
@@ -893,7 +899,7 @@ class deeplab_xception_transfer_projection_synBN_savemem(deeplab_xception_transf
         x = self.concat_projection_bn1(x)
         x = self.relu(x)
         # print(x.size())
-        x = F.upsample(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=low_level_features.size()[2:], mode='bilinear', align_corners=True)
 
         low_level_features = self.feature_projection_conv1(low_level_features)
         low_level_features = self.feature_projection_bn1(low_level_features)
@@ -947,7 +953,7 @@ class deeplab_xception_transfer_projection_synBN_savemem(deeplab_xception_transf
 
         ###
         x = self.semantic(x)
-        x = F.upsample(x, size=input.size()[2:], mode='bilinear', align_corners=True)
+        x = F.interpolate(x, size=input.size()[2:], mode='bilinear', align_corners=True)
 
         return x
 
@@ -991,6 +997,7 @@ class deeplab_xception_transfer_projection_synBN_savemem(deeplab_xception_transf
             # print 'copying %s' %name
 
         missing = set(own_state.keys()) - set(new_state_dict.keys())
+        missing = {m for m in missing if not m.endswith('num_batches_tracked')}
         if len(missing) > 0:
             print('missing keys in state_dict: "{}"'.format(missing))
 
